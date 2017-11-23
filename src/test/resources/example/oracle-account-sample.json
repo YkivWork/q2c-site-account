@@ -1,0 +1,37 @@
+{
+  "accountId": "18153",
+  "name": "Air France",
+  "number": "17693",
+  "status": "A",
+  "taxNumber": "FR 03552043002",
+  "accountSites": [
+    {
+      "accountSiteId": "21362",
+      "address1": "45, rue de Paris",
+      "address2": null,
+      "address3": null,
+      "city": "Roissy CDG Cedex",
+      "county": null,
+      "state": null,
+      "province": null,
+      "postalCode": "95747",
+      "country": "FR",
+      "operatingUnitName": "GB_OU-MERRILL CORPORATION LTD",
+      "status": "A"
+    },
+    {
+      "accountSiteId": "32267",
+      "address1": "Droit des Societes",
+      "address2": "Direction des Affaires juridiques",
+      "address3": "45 rue de Paris",
+      "city": "Roissy CDG cedex",
+      "county": null,
+      "state": null,
+      "province": null,
+      "postalCode": "F-95747",
+      "country": "FR",
+      "operatingUnitName": "GB_OU-MERRILL CORPORATION LTD",
+      "status": "A"
+    }
+  ]
+}

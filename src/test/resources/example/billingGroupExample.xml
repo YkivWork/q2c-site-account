@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:client:api:wsdl:document/literal_wrapped:vers:11.0:aria_complete_m_api" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SOAP-ENV:Body>
+		<ns1:get_acct_billing_group_details_mResponseElement>
+			<ns1:error_code>0</ns1:error_code>
+			<ns1:error_msg>OK</ns1:error_msg>
+			<ns1:billing_groups>
+				<ns1:billing_group_no>789337</ns1:billing_group_no>
+				<ns1:billing_group_name>154773-168698-USD</ns1:billing_group_name>
+				<ns1:billing_group_description xsi:nil="true"/>
+				<ns1:client_billing_group_id>789337</ns1:client_billing_group_id>
+				<ns1:status>1</ns1:status>
+				<ns1:notify_method xsi:nil="true"/>
+				<ns1:notify_template_group xsi:nil="true"/>
+				<ns1:statement_template>112</ns1:statement_template>
+				<ns1:credit_note_template xsi:nil="true"/>
+				<ns1:payment_option>Methods</ns1:payment_option>
+				<ns1:primary_payment_method_no xsi:nil="true"/>
+				<ns1:client_primary_payment_method_id xsi:nil="true"/>
+				<ns1:backup_payment_method_no xsi:nil="true"/>
+				<ns1:client_backup_payment_method_id xsi:nil="true"/>
+				<ns1:client_payment_term_id xsi:nil="true"/>
+				<ns1:payment_terms_name xsi:nil="true"/>
+				<ns1:payment_terms_no xsi:nil="true"/>
+				<ns1:payment_terms_type>Net Terms</ns1:payment_terms_type>
+				<ns1:ean_gln_num xsi:nil="true"/>
+				<ns1:ean_gln_requisition_num xsi:nil="true"/>
+				<ns1:stmt_first_name>First</ns1:stmt_first_name>
+				<ns1:stmt_mi xsi:nil="true"/>
+				<ns1:stmt_last_name>Last</ns1:stmt_last_name>
+				<ns1:stmt_company_name>3M Company</ns1:stmt_company_name>
+				<ns1:stmt_address1>3M Center Bldg 220</ns1:stmt_address1>
+				<ns1:stmt_address2 xsi:nil="true"/>
+				<ns1:stmt_address3 xsi:nil="true"/>
+				<ns1:stmt_city>Saint Paul</ns1:stmt_city>
+				<ns1:stmt_locality xsi:nil="true"/>
+				<ns1:stmt_state_prov>MN</ns1:stmt_state_prov>
+				<ns1:stmt_country>US</ns1:stmt_country>
+				<ns1:stmt_postal_cd>55144-1000</ns1:stmt_postal_cd>
+				<ns1:stmt_phone>(651) 331-3333</ns1:stmt_phone>
+				<ns1:stmt_phone_ext xsi:nil="true"/>
+				<ns1:stmt_cell_phone xsi:nil="true"/>
+				<ns1:stmt_work_phone xsi:nil="true"/>
+				<ns1:stmt_work_phone_ext xsi:nil="true"/>
+				<ns1:stmt_fax xsi:nil="true"/>
+				<ns1:stmt_email>test@gmail.com</ns1:stmt_email>
+				<ns1:stmt_birthdate xsi:nil="true"/>
+				<ns1:list_start_master_file xsi:nil="true"/>
+				<ns1:address_verification_code xsi:nil="true"/>
+				<ns1:address_match_score xsi:nil="true"/>
+				<ns1:master_plans_summary>
+					<ns1:plan_instance_no>1761173</ns1:plan_instance_no>
+					<ns1:client_plan_instance_id>1761173</ns1:client_plan_instance_id>
+				</ns1:master_plans_summary>
+				<ns1:credit_memo_template xsi:nil="true"/>
+				<ns1:rebill_template xsi:nil="true"/>
+			</ns1:billing_groups>
+			<ns1:payment_methods_summary xsi:nil="true"/>
+		</ns1:get_acct_billing_group_details_mResponseElement>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

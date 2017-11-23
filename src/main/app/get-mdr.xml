@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:json="http://www.mulesoft.org/schema/mule/json"  xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+
+    <sub-flow name="MDR_getAriaAccountsForBillingAddressSub_Flow">
+        <logger message="flow = Start = MDR_getAriaAccountsFromForBillingAddressSub_Flow" level="INFO" doc:name="INFO" category="com.merrillcorp.q2c"/>
+        <set-session-variable variableName="payloadBeforeUntillSuccess" value="#[payload]" doc:name="setPayloadBeforeUntillSuccess"/>
+        <until-successful maxRetries="${mdr.http.max.retries}" millisBetweenRetries="${mdr.http.milliSecondsBetweenRetries}" failureExpression="exception!=null &amp;&amp; (exception.causedBy(java.io.IOException) || exception.causedBy(java.net.ConnectException)  || exception.causedBy(java.net.SocketTimeoutException))" synchronous="true" doc:name="UntilSuccessfulForAccountDetails">
+            <http:request config-ref="HTTP_MDR_Configuration" path="${mdr.multientity.path}" method="GET" doc:name="GetXRefFromMDRHavingMultiEntityWithSFProjectNumber">
+                <http:request-builder>
+                    <http:query-param paramName="entity_type_key" value="PROJ"/>
+                    <http:query-param paramName="id_type_key" value="SF_PROJ"/>
+                    <http:query-param paramName="id_value" value="#[flowVars.sfProjectNumber]"/>
+                    <http:query-param paramName="include_deleted_cross_ref" value="0"/>
+                </http:request-builder>
+                <http:success-status-code-validator values="0..599"/>
+            </http:request>
+        </until-successful>
+        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <logger message="payload received from MDR call:  #[payload]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+
+        <dw:transform-message doc:name="getAriaAccts">
+            <dw:input-payload doc:sample="sample_data\json.json"/>
+            <dw:set-variable resource="classpath:dataweave/aria_get_AcctId_MpiId_InstIdForAddr.dwl" variableName="ariaVal"/>
+
+        </dw:transform-message>
+        <logger message="The extracted Aria MPI,  Entity Instance,  Aria Acct ID's are:  #[flowVars.ariaVal]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <set-payload value="#[flowVars.ariaVal]" doc:name="Set Payload"/>
+
+
+        <logger message="flow = End =  MDR_getAriaAccountsFromForBillingAddressSub_Flow" level="INFO" doc:name="INFO" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+
+
+    <sub-flow name="MDR_getAriaAccountsFromOrg_AcctSub_Flow">
+        <logger message="flow = Start = getXRefFromMDRWithAriaMPISub_Flow" level="INFO" doc:name="INFO" category="com.merrillcorp.q2c"/>
+        <logger message="The extracted Aria Acct values are:   #[payload]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <set-variable variableName="payloadList" value="#[new java.util.ArrayList()]" doc:name="Variable"/>
+        <foreach doc:name="For Each">
+            <until-successful maxRetries="${mdr.http.max.retries}" millisBetweenRetries="${mdr.http.milliSecondsBetweenRetries}" failureExpression="exception!=null &amp;&amp; (exception.causedBy(java.io.IOException) || exception.causedBy(java.net.ConnectException)  || exception.causedBy(java.net.SocketTimeoutException))" synchronous="true" doc:name="UntilSuccessfulForAccountDetails">
+                <http:request config-ref="HTTP_MDR_Configuration" path="${mdr.multientity.path}" method="GET" doc:name="GetXRefFromMDRHavingMultiEntityWithAriaAcct">
+                    <http:request-builder>
+                        <http:query-param paramName="entity_type_key" value="PROJ"/>
+                        <http:query-param paramName="id_type_key" value="Aria_Acct"/>
+                        <http:query-param paramName="id_value" value="#[payload.id_val]"/>
+                        <http:query-param paramName="include_deleted_cross_ref" value="0"/>
+                    </http:request-builder>
+                    <http:success-status-code-validator values="0..599"/>
+                </http:request>
+            </until-successful>
+            <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+            <json:object-to-json-transformer doc:name="Object to JSON"/>
+            <logger message="payload received from MDR call:  #[payload]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+            <expression-component doc:name="Expression"><![CDATA[#[flowVars.payloadList.add(payload)]]]></expression-component>
+        </foreach>
+        <set-payload value="#[flowVars.payloadList]" mimeType="application/json" doc:name="Set Payload"/>
+        <logger message="payload received from MDR call after for each loop is:  #[payload]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <dw:transform-message doc:name="getCommonAcct">
+            <dw:set-variable resource="classpath:dataweave/aria_get_comm_accts_from_proj_org.dwl" variableName="comVal"/>
+        </dw:transform-message>
+        <logger message="The common Accts are : #[flowVars.comVal]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+
+        <dw:transform-message doc:name="getAriaAccts">
+            <dw:input-payload doc:sample="sample_data\json.json"/>
+            <dw:set-variable resource="classpath:dataweave/aria_get_AcctId_MpiId_InstId.dwl" variableName="ariaVal"/>
+
+        </dw:transform-message>
+        <logger message="The extracted Aria MPI,  Entity Instance,  Aria Acct ID's are:  #[flowVars.ariaVal]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <set-payload value="#[flowVars.ariaVal]" doc:name="Set Payload"/>
+
+
+        <logger message="flow = End =  getXRefFromMDRWithAriaMPISub_Flow" level="INFO" doc:name="INFO" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    <sub-flow name="MDR_getAriaAccountsFromBillingCompanyIdSub_Flow">
+        <logger message="flow = Start = MDR_getAriaAccountsFromBillingCompanyIdSub_Flow" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <until-successful maxRetries="${mdr.http.max.retries}" millisBetweenRetries="${mdr.http.milliSecondsBetweenRetries}" failureExpression="exception!=null &amp;&amp; (exception.causedBy(java.io.IOException) || exception.causedBy(java.net.ConnectException)  || exception.causedBy(java.net.SocketTimeoutException))" synchronous="true" doc:name="Until Successful">
+            <http:request config-ref="HTTP_MDR_Configuration" path="${mdr.multientity.path}" method="GET" doc:name="GetXRefFromMDRHavingMultiEntityWithBillingCompanyId">
+                <http:request-builder>
+                    <http:query-param paramName="entity_type_key" value="ORG"/>
+                    <http:query-param paramName="id_type_key" value="SF_BILLCO"/>
+                    <http:query-param paramName="id_value" value="#[flowVars.BillingCompanyID]"/>
+                    <http:query-param paramName="include_deleted_cross_ref" value="0"/>
+                </http:request-builder>
+            </http:request>
+        </until-successful>
+        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <logger message="payload received from MDR call:  #[payload]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <dw:transform-message doc:name="getAriaAccts">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload filter (($.IdentifierTypeKey == "Aria_Acct") and ($.EndDate == null)) map {
+    id_val : $.IdentifierValue
+    }]]></dw:set-payload>
+            <dw:set-variable resource="classpath:dataweave/aria_get_AcctId_From_ORG.dwl" variableName="orgVal"/>
+        </dw:transform-message>
+        <logger message="The extracted Aria Acct ID from ORG are:  #[flowVars.orgVal]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <logger message="flow = End = getXRefFromMDRWithBillingCompanyIdSub_Flow" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+
+
+        
+    
+</mule>

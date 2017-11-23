@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+
+    
+    <sub-flow name="aria_updateContact_Sub_Flow">
+        <logger message="flow = start = aria_updateContact_Sub_Flow" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+        accountNumber: flowVars.ariaAccount,
+        contactInd: 4,
+		billingGroupNumber: flowVars.billingGroup.billingGroupNumber,
+        firstName: flowVars.billingCompanyDataForeach.First_name,
+        middleInitial: flowVars.billingCompanyDataForeach.Middle_name,
+        lastName: flowVars.billingCompanyDataForeach.Last_name,
+        companyName: flowVars.theBillingCompany.billingCompanyName,
+        address1: flowVars.theBillingAddress.address1,
+        address2: flowVars.theBillingAddress.address2,
+        address3: flowVars.theBillingAddress.address3,
+        city: flowVars.theBillingAddress.city,
+        locality: flowVars.theBillingAddress.locality,
+        stateProvince: flowVars.theBillingAddress.stateProvince,
+        country: flowVars.theBillingAddress.country,
+        postalCode: flowVars.theBillingAddress.postalCode,
+        phone: flowVars.billingCompanyDataForeach.Phone,
+        email: flowVars.billingCompanyDataForeach.Email
+      }]]></dw:set-payload>
+        </dw:transform-message>
+        <set-session-variable variableName="payloadBeforeUntilSuccess" value="#[payload]" doc:name="setPayloadBeforeUntilSuccess"/>
+        <until-successful maxRetries="${aria.http.max.retries}" failureExpression="exception!=null &amp;&amp; (exception.causedBy(java.io.IOException) || exception.causedBy(java.net.ConnectException)  || exception.causedBy(java.net.SocketTimeoutException))" synchronous="true" doc:name="Until Successful" millisBetweenRetries="${aria.http.milliSecondsBetweenRetries}">
+            <http:request config-ref="HTTP_Aria_Sys_Request_Configuration" path="${aria.contact.path}" method="GET" doc:name="UpdateContactInAria">
+            </http:request>
+        </until-successful>
+        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+
+        <logger message="Response from Aria - aria_updateContact: #[message.payloadAs(java.lang.String)]" level="INFO" category="com.merrillcorp.q2c" doc:name="INFO"/>
+        <logger message="flow = end = aria_updateContact_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        
+    </sub-flow>
+    <sub-flow name="aria_companyName_updateContact_Sub_Flow">
+        <logger message="flow = start = aria_companyName_updateContact_Sub_Flow" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <choice doc:name="Choice">
+            <when expression="flowVars.comVal != null or flowVars.comVal != ''">
+                <logger message="The values to be compared: all common accts #[flowVars.comVal] ----------------------------------------------------- current acct #[flowVars.ariaAccount]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+                <dw:transform-message doc:name="compare acct number">
+                    <dw:set-variable resource="classpath:dataweave/aria_compare_acct_num.dwl" variableName="nameUpdate"/>
+                </dw:transform-message>
+                <logger message="#[flowVars.nameUpdate.com_val]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+                <logger message="The company name: #[flowVars.theBillingCompany.billingCompanyName]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+                <choice doc:name="Choice">
+                    <when expression="flowVars.nameUpdate.com_val != 0">
+                        <logger message="updating the company name in update_contact_m" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+                        <dw:transform-message doc:name="Transform Message">
+                            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+        accountNumber: flowVars.ariaAccount,
+        contactInd: 1,
+		companyName: flowVars.theBillingCompany.billingCompanyName when flowVars.theBillingCompany.billingCompanyName != null otherwise '0'
+}]]></dw:set-payload>
+                        </dw:transform-message>
+                        <set-session-variable variableName="payloadBeforeUntilSuccess" value="#[payload]" doc:name="setpayloadBeforeUntilSuccess"/>
+                        <until-successful maxRetries="${aria.http.max.retries}" millisBetweenRetries="${aria.http.milliSecondsBetweenRetries}" failureExpression="exception!=null &amp;&amp; (exception.causedBy(java.io.IOException) || exception.causedBy(java.net.ConnectException)  || exception.causedBy(java.net.SocketTimeoutException))" synchronous="true" doc:name="Until Successful">
+                            <http:request config-ref="HTTP_Aria_Sys_Request_Configuration" path="${aria.update-contact.path}?accountNumber=#[payload.accountNumber]&amp;contactInd=#[payload.contactInd]&amp;companyName=#[payload.companyName]" method="GET" doc:name="UpdateContactInAria">
+                            </http:request>
+                        </until-successful>
+                        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+                        <logger message="Response from Aria - aria_updateContact: #[message.payloadAs(java.lang.String)]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+                    </when>
+                    <otherwise>
+                        <logger message="No Company name changed, to update in aria" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+                    </otherwise>
+                </choice>
+                <logger message="updated with contact_ind    '1'" level="DEBUG" category="com.merrillcorp.q2c" doc:name="Logger"/>
+            </when>
+            <otherwise>
+                <logger message="No change to process" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+            </otherwise>
+        </choice>
+        <logger message="flow = end = aria_companyName_updateContact_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    <sub-flow name="aria_getBillingGroup_Sub_Flow">
+        <logger message="flow = start = aria_getBillingGroup_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	accountNumber: flowVars.ariaAccount
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <set-session-variable variableName="payloadBeforeUntilSuccess" value="#[payload]" doc:name="setPayloadBeforeUntilSuccess"/>
+        <until-successful maxRetries="${aria.http.max.retries}" millisBetweenRetries="${aria.http.milliSecondsBetweenRetries}" failureExpression="exception!=null &amp;&amp; (exception.causedBy(java.io.IOException) || exception.causedBy(java.net.ConnectException)  || exception.causedBy(java.net.SocketTimeoutException))" synchronous="true" doc:name="Until Successful">
+            <http:request config-ref="HTTP_Aria_Sys_Request_Configuration" path="${aria.billing-group.path}?accountNumber=#[payload.accountNumber]" method="GET" doc:name="GetBillingGroup">
+            </http:request>
+        </until-successful>
+        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+        <logger message="Response from Aria - aria_getBillingGroup: #[message.payloadAs(java.lang.String)]" level="INFO" category="com.merrillcorp.q2c" doc:name="INFO"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="17d6576d-ce71-4a69-aa75-9708811e8b16">
+            <dw:set-variable resource="classpath:dataweave/aria_parseBillingGroup.dwl" variableName="billingGroup"/>
+        </dw:transform-message>
+        <logger message="After comparing MPI to Client Instance ID to get billing group num: #[flowVars.billingGroup]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <logger message="flow = end = aria_getBillingGroup_Sub_Flow" level="DEBUG" category="com.merrillcorp.q2c" doc:name="Logger"/>
+    </sub-flow>
+
+ 
+</mule>

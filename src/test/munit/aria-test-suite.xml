@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
+    <munit:config mock-connectors="false" mock-inbounds="false" name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:globals.xml"/>
+        <spring:import resource="classpath:aria.xml"/>
+    </spring:beans>
+    <munit:test name="aria-test-suite-aria_getBillingGroup_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="http:request" doc:name="http Mock">
+            <mock:then-return payload="#[getResource('example/billingGroupExample.xml').asString()]" mimeType="application/xml"/>
+        </mock:when>
+        <set-variable variableName="ariaAccount" value="12344" doc:name="ariaAccount"/>
+        <set-variable variableName="ariaMPI" value="1761173" doc:name="ariaMPI"/>
+        <flow-ref name="aria_getBillingGroup_Sub_Flow" doc:name="aria_getBillingGroup_Sub_Flow"/>
+        <munit:assert-on-equals message="failed on GetBillinGroup" expectedValue="OK" actualValue="#[flowVars.billingGroup.errorMsg]" doc:name="Assert Equals"/>
+    </munit:test>
+    <munit:test name="aria-test-suite-aria_updateContact_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="http:request" doc:name="http Mock">
+            <mock:then-return payload="#[getResource('example/updateContactResponse.xml').asString()]" mimeType="application/xml"/>
+        </mock:when>
+        <set-variable variableName="ariaAccount" value="12344" doc:name="ariaAccount"/>
+        <dw:transform-message doc:name="SetBillingGroup">
+            <dw:set-variable variableName="billingGroup"><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	clientBillingGroupId : "4",
+	billingGroupNumber: 789337
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <dw:transform-message doc:name="setTheBillingCompany">
+            <dw:set-variable variableName="theBillingCompany"><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	 billingCompanyName: "aCompanyName"
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <dw:transform-message doc:name="set TheBillingAddress">
+            <dw:set-variable variableName="theBillingAddress"><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	address1: "address1",
+	address2: "address2",
+	address3: "address3",
+	city: "city",
+	locality: "locality",
+	stateProvince: "state",
+	country:"country",
+	postalCode: "54522"
+	
+}]]></dw:set-variable>
+            <dw:set-variable variableName="billingCompanyDataForeach"><![CDATA[%dw 1.0
+%output application/java
+---
+{
+		First_name: "firstname",
+        Middle_name: "MI",
+        Last_name: "lastname",
+        Phone: "phone",
+        Email: "email@address.com"
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="aria_updateContact_Sub_Flow" doc:name="aria_updateContact_Sub_Flow"/>
+        <munit:assert-not-null doc:name="Assert Not Null Payload"/>
+    </munit:test>
+    <munit:test name="aria-test-suite-aria_companyName_updateContact_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="http:request" doc:name="http Mock">
+            <mock:then-return payload="#[getResource('example/updateContactResponse.xml').asString()]" mimeType="application/xml"/>
+        </mock:when>
+        <set-variable variableName="ariaAccount" value="12344" doc:name="ariaAccount"/>
+        <set-variable variableName="comVal" value="12345, 12344, 68767" doc:name="comVal"/>
+        <dw:transform-message doc:name="setTheBillingCompany">
+            <dw:set-variable variableName="theBillingCompany"><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	 billingCompanyName: "aCompanyName"
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="aria_companyName_updateContact_Sub_Flow" doc:name="aria_companyName_updateContact_Sub_Flow"/>
+        <munit:assert-not-null doc:name="Assert Not Null Payload"/>
+    </munit:test>
+</mule>

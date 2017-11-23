@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <flow name="pollOracleCustomerFlow">
+        <poll doc:name="Poll">
+            <fixed-frequency-scheduler frequency="${poll.frequencyMillis}" startDelay="${poll.delayMillis}"/>
+            <processor-chain doc:name="Processor Chain">
+                <logger message="Flow=pollOracleCustomerFlow Action=Started" level="DEBUG" doc:name="[DEBUG] Log Payload" category="com.merrillcorp.logging"/>
+            </processor-chain>
+        </poll>
+        <flow-ref name="getOracleAccountFlow" doc:name="getOracleAccountFlow"/>
+
+        <foreach collection="payload.customers" doc:name="For Each">
+            <flow-ref name="processCustomerFlow" doc:name="processCustomerFlow"/>
+        </foreach>
+        
+        <logger message="Flow=pollOracleCustomerFlow Action=Completed" level="DEBUG" doc:name="[DEBUG] Log Payload" category="com.merrillcorp.logging"/>
+        
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <logger message="Flow=pollOracleCustomerFlow Exception=#[exception.getSummaryMessage()]" level="ERROR" category="com.merrillcorp.logging" doc:name="Log Exception Summary"/>
+        </catch-exception-strategy>
+    </flow>
+</mule>

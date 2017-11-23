@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <munit:config  mock-connectors="false" mock-inbounds="false" name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:globals.xml"/>
+        <spring:import resource="classpath:sys-sfdc/updateaddress.xml"/>
+    </spring:beans>
+ 
+    <munit:test name="update-address-test-updateaddressFlowTest" description="Test">
+        <mock:when messageProcessor="sfdc:upsert" doc:name="Mock">
+            <mock:then-return payload="{ &quot;success&quot;: &quot;true&quot; }" mimeType="application/java"/>
+        </mock:when>
+
+        <set-payload value="{ &quot;ADDRESS1&quot;: &quot;123 Test Ave&quot;,   &quot;ADDRESS2&quot;: &quot;456 Test Ave&quot;,   &quot;ADDRESS3&quot;: &quot;789 Test Street&quot;,   &quot;CITY&quot;: &quot;Coon Rapids&quot;,   &quot;COUNTY&quot;: &quot;Anoka&quot;,   &quot;STATE&quot;: &quot;MN&quot;,   &quot;COUNTRY&quot;: &quot;US&quot;,   &quot;POSTAL_CODE&quot;: &quot;55433&quot;,   &quot;OPERATING_UNIT_NAME&quot;: &quot;US_OU-MERRILL CORPORATION&quot;,   &quot;CUST_ACCT_SITE_ID&quot;: &quot;-1&quot; }" mimeType="application/json" doc:name="Set Payload"/>
+
+        <set-session-variable variableName="oracleCompanyName" value="#[&quot;Test Company&quot;]" doc:name="Session Variable"/>        <flow-ref name="updateaddressFlow" doc:name="updateaddressFlow"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" mimeType="application/java" doc:name="JSON to Object"/>
+        <munit:assert-on-equals message="SFDC Update Failed" expectedValue="#[&quot;true&quot;]" actualValue="#[payload.success]" doc:name="Assert Equals"/>
+    </munit:test>
+
+    <munit:test name="update-address-null-fix-Test" description="Test">
+        <mock:when messageProcessor="sfdc:upsert" doc:name="Mock">
+            <mock:then-return payload="{ &quot;success&quot;: &quot;true&quot; }" mimeType="application/java"/>
+        </mock:when>
+
+        <set-payload value="{ &quot;ADDRESS1&quot;: &quot;123 Test Ave&quot;,   &quot;ADDRESS2&quot;: &quot;456 Test Ave&quot;,   &quot;ADDRESS3&quot;: &quot;789 Test Street&quot;,   &quot;CITY&quot;: &quot;Coon Rapids&quot;,   &quot;COUNTY&quot;: &quot;Anoka&quot;,     &quot;COUNTRY&quot;: &quot;US&quot;,   &quot;POSTAL_CODE&quot;: &quot;55433&quot;,   &quot;OPERATING_UNIT_NAME&quot;: &quot;US_OU-MERRILL CORPORATION&quot;,   &quot;CUST_ACCT_SITE_ID&quot;: &quot;-1&quot; }" mimeType="application/json" doc:name="Set Payload"/>
+
+        <set-session-variable variableName="oracleCompanyName" value="#[&quot;Test Company&quot;]" doc:name="Session Variable"/>        <flow-ref name="updateaddressFlow" doc:name="updateaddressFlow"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" mimeType="application/java" doc:name="JSON to Object"/>
+        <munit:assert-on-equals message="SFDC Update Failed" expectedValue="#[&quot;true&quot;]" actualValue="#[payload.success]" doc:name="Assert Equals"/>
+    </munit:test>
+</mule>

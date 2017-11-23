@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
+    <munit:config  mock-connectors="false" mock-inbounds="false" name="munit"  doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:globals.xml"/>
+        <spring:import resource="classpath:get-mdr.xml"/>
+        <spring:import resource="classpath:aria.xml"/>
+        <spring:import resource="classpath:salesforce.xml"/>
+        <spring:import resource="classpath:site-account.xml"/>
+    </spring:beans>
+    <munit:test name="site-account-test-suite-processBillingAddresses_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock sf_getBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock processProjectsBillingAddressToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingAddressToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <munit:set payload="[123,456]" mimeType="application/json" doc:name="Set Message"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <flow-ref name="processBillingAddresses_Sub_Flow" doc:name="processBillingAddresses_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call To processProjectsBillingAddressToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingAddressToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call To sf_getBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call To sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="site-account-test-suite-processBillingAddresses_Sub_Flow_NegativeTest" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock processProjectsBillingAddressToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingAddressToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock sf_getBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <munit:set payload="[]" mimeType="application/json" doc:name="Set Message"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <flow-ref name="processBillingAddresses_Sub_Flow" doc:name="processBillingAddresses_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="0" doc:name="Verify Call To processProjectsBillingAddressToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingAddressToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="0" doc:name="Verify Call To sf_getBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="0" doc:name="Copy_of_Verify Call To sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="site-account-test-suite-processBillingCompanies_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock sf_getBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <munit:set payload="[123,456]" mimeType="application/json" doc:name="Set Message"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <flow-ref name="processBillingCompanies_Sub_Flow" doc:name="processBillingCompanies_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call To processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call To sf_getBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call To sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="site-account-test-suite-processBillingCompanies_Sub_Flow_NegativeTest" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mocksf_getBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <munit:set payload="[]" mimeType="application/json" doc:name="Set Message"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <flow-ref name="processBillingCompanies_Sub_Flow" doc:name="processBillingCompanies_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="0" doc:name="Verify Call To processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="0" doc:name="Verify Call To sf_getBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="0" doc:name="Verify Call To sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="site-account-test-suite-ProcessAriaAccountsToUpdateContacts_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock aria_getBillingGroup_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_getBillingGroup_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock aria_updateContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_updateContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <munit:set payload="[&quot;1234&quot;,&quot;5678&quot;,&quot;234&quot;]" mimeType="application/json" doc:name="Set Message"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-variable variableName="ariaVal"><![CDATA[%dw 1.0
+%output application/java
+---
+payload  map {
+	id_val : 12345,
+    ql_val : 12345 
+}]]></dw:set-variable>
+            <dw:set-variable variableName="billingCompanies"><![CDATA[%dw 1.0
+%output application/java
+---
+payload map ((company, index) ->
+{
+	name: "unisys corp"
+})]]></dw:set-variable>
+            <dw:set-variable variableName="theBillingCompany"><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	billingCompanyName: "merill"
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <set-payload value="#[flowVars.ariaVal]" doc:name="Set Payload"/>
+        <flow-ref name="ProcessAriaAccountsToUpdateContacts_Sub_Flow" doc:name="ProcessAriaAccountsToUpdateContacts_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="3" doc:name="Verify Call To aria_getBillingGroup_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_getBillingGroup_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="3" doc:name="Verify Call To aria_updateContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_updateContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="site-account-test-suite-ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock aria_getBillingGroup_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_getBillingGroup_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock aria_companyName_updateContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_companyName_updateContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json">
+                <mock:invocation-properties>
+                    <mock:invocation-property key="oracleAuth" value="#[ ['tokenName': '', 'accessToken': ''] ]" mimeType="application/java"/>
+                </mock:invocation-properties>
+            </mock:then-return>
+        </mock:when>
+        <munit:set payload="[&quot;1234&quot;,&quot;5678&quot;,&quot;234&quot;]" mimeType="application/json" doc:name="Set Message"/>
+        <set-variable variableName="comVal" value="[12345]" doc:name="Variable"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-variable variableName="ariaVal"><![CDATA[%dw 1.0
+%output application/java
+---
+payload  map {
+	id_val : 12345,
+    ql_val : 12345 
+}]]></dw:set-variable>
+            <dw:set-variable variableName="billingCompanies"><![CDATA[%dw 1.0
+%output application/java
+---
+payload map ((company, index) ->
+{
+	name: "unisys corp"
+})]]></dw:set-variable>
+            <dw:set-variable variableName="theBillingCompany"><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	billingCompanyName: "merill"
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <set-payload value="#[flowVars.ariaVal]" doc:name="Set Payload"/>
+        <flow-ref name="ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow" doc:name="ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="3" doc:name="Verify Call To aria_getBillingGroup_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_getBillingGroup_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="3" doc:name="Verify aria_companyName_updateContact_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('aria_companyName_updateContact_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="site-account-test-suite-processProjectsBillingAddressToUpdateAriaContact_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock ProcessAriaAccountsToUpdateContacts_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('ProcessAriaAccountsToUpdateContacts_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock MDR_getAriaAccountsForBillingAddressSub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('MDR_getAriaAccountsForBillingAddressSub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }"/>
+        </mock:when>
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Script">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="getAddressAndCompany"/>
+            </mock:with-attributes>
+            <mock:then-return payload="asaffd" mimeType="application/xml"/>
+        </mock:when>
+        <munit:set payload="[&quot;1234&quot;,&quot;5678&quot;]" mimeType="application/json" doc:name="Set Message"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-variable variableName="billingAddressBillingCompanyToProjects"><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="processProjectsBillingAddressToUpdateAriaContact_Sub_Flow" doc:name="processProjectsBillingAddressToUpdateAriaContact_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="2" doc:name="Verify Call To MDR_getAriaAccountsForBillingAddressSub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('MDR_getAriaAccountsForBillingAddressSub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="2" doc:name="Verify Call To ProcessAriaAccountsToUpdateContacts_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('ProcessAriaAccountsToUpdateContacts_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="site-account-test-suite-processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow" description="Test">
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock MDR_getAriaAccountsFromBillingCompanyIdSub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('MDR_getAriaAccountsFromBillingCompanyIdSub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }"/>
+        </mock:when>
+        <mock:when messageProcessor="mule:sub-flow" doc:name="Mock MDR_getAriaAccountsFromOrg_AcctSub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('MDR_getAriaAccountsFromOrg_AcctSub_Flow')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="{ }" mimeType="application/json"/>
+        </mock:when>
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Script">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="getAddressAndCompany"/>
+            </mock:with-attributes>
+            <mock:then-return payload="asaffd" mimeType="application/xml"/>
+        </mock:when>
+        <munit:set payload="[&quot;1234&quot;,&quot;5678&quot;]" mimeType="application/json" doc:name="Set Message"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-variable variableName="billingAddressBillingCompanyToProjects"><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow" doc:name="processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="2" doc:name="Verify Call To MDR_getAriaAccountsFromOrg_AcctSub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('MDR_getAriaAccountsFromOrg_AcctSub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="2" doc:name="Verify Call To ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+</mule>

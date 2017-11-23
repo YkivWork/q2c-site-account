@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
+    <munit:config mock-connectors="false" mock-inbounds="false" name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:globals.xml"/>
+        <spring:import resource="classpath:get-mdr.xml"/>
+    </spring:beans>
+    <munit:test name="get-mdr-test-suite-MDR_getAriaAccountsFromOrg_AcctSub_FlowTest" description="Test">
+        <mock:when messageProcessor="http:request" doc:name="Mock">
+            <mock:then-return payload="#[getResource('example/associates-get-result-example.json').asString()]" mimeType="application/json"/>
+        </mock:when>
+        <munit:set payload="#[getResource('example/org-get-id-example.json').asString()]" mimeType="application/json" doc:name="Set Message - org-get-id-example.json"/>
+        <flow-ref name="MDR_getAriaAccountsFromBillingCompanyIdSub_Flow" doc:name="MDR_getAriaAccountsFromBillingCompanyIdSub_Flow"/>
+        <flow-ref name="MDR_getAriaAccountsFromOrg_AcctSub_Flow" doc:name="MDR_getAriaAccountsFromOrg_AcctSub_Flow"/>
+        <munit:assert-on-equals message="failed on Extracting Aria Accounts from MDR" expectedValue="#[9]" actualValue="#[flowVars.ariaVal.size()]" doc:name="Assert Equals"/>
+    </munit:test>
+    <munit:test name="get-mdr-test-suite-MDR_getAriaAccountsForBillingAddressSub_FlowTest" description="Test">
+        <mock:when messageProcessor="http:request" doc:name="Mock">
+            <mock:then-return payload="#[getResource('example/associates-get-result-example.json').asString()]" mimeType="application/json"/>
+        </mock:when>
+        <flow-ref name="MDR_getAriaAccountsForBillingAddressSub_Flow" doc:name="MDR_getAriaAccountsForBillingAddressSub_Flow"/>
+        <munit:assert-on-equals message="failed on Extracting Aria Accounts from MDR" expectedValue="#[3]" actualValue="#[flowVars.ariaVal.size()]" doc:name="Assert Equals"/>
+    </munit:test>
+</mule>

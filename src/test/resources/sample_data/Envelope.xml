@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header/>
+  <soap:Body>
+    <lit:get_acct_billing_group_details_m xmlns:lit="urn:client:api:wsdl:document/literal_wrapped:vers:10.2:aria_complete_m_api"/>
+  </soap:Body>
+</soap:Envelope>

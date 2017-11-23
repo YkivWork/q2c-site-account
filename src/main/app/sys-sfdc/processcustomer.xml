@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <flow name="processCustomerFlow" >
+        <json:json-to-object-transformer returnClass="java.util.HashMap" mimeType="application/json" doc:name="Object to JSON"/>
+
+        <set-variable variableName="customerRecord" value="#[payload]" doc:name="Variable"/>
+
+        <dw:transform-message doc:name="Set Payload for sfdc Input">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+[{
+  Name: flowVars.customerRecord.name,
+  Billing_Company_Name__c: flowVars.customerRecord.name,
+  Oracle_account_number__c: flowVars.customerRecord.number,
+  Oracle_ID__c: flowVars.customerRecord.accountId,
+  VAT__c: flowVars.customerRecord.taxReference
+}]]]></dw:set-payload>
+        </dw:transform-message>
+        <sfdc:upsert config-ref="Salesforce__Basic_Authentication" externalIdFieldName="Oracle_ID__c" type="Billing_Company__c" doc:name="Salesforce">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:upsert>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <choice doc:name="Choice">
+            <when expression="payload[0].errors.length == 0 &amp;&amp; payload[0].success == true">
+                <logger message="Billing Company update Success" level="DEBUG" category="com.merrillcorp.q2c" doc:name="Success"/>
+            </when>
+            <otherwise>
+                <logger message="Error Updating Billing Company -----------&gt; Error Payload: #[message.payloadAs(java.lang.String)]" level="ERROR" category="com.merrillcorp.q2c" doc:name="Error"/>
+                <scripting:component doc:name="Groovy">
+                    <scripting:script engine="Groovy"><![CDATA[if(((payload[0].errors.length) != 0) || ((payload[0].success) == false)){
+	throw new java.lang.Exception();
+
+}else{
+
+return payload
+}]]></scripting:script>
+                </scripting:component>
+            </otherwise>
+        </choice>
+
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:Select Id from Billing_Company__c WHERE Oracle_ID__c = '#[flowVars.customerRecord.accountId]'" doc:name="Salesforce"/>
+
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload map {
+ sfdcId: $.Id
+}
+]]></dw:set-payload>
+        </dw:transform-message>
+
+        <set-variable variableName="sfdcCompanyId" value="#[payload[0].sfdcId]" doc:name="Variable"/>
+
+        <foreach collection="flowVars.customerRecord.accountSites" doc:name="For Each">
+            <flow-ref name="updateaddressFlow" doc:name="updateaddressFlow"/>
+        </foreach>
+
+        <logger message="Ending processcustomerFlow" level="DEBUG" doc:name="[DEBUG] Log Payload" category="com.merrillcorp.q2c"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <logger message="#[exception.getSummaryMessage()]" level="ERROR" category="processcustomerFlow" doc:name="Logger"/>
+        </catch-exception-strategy>
+
+
+    </flow>
+</mule>

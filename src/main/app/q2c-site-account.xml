@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:context="http://www.springframework.org/schema/context" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <flow name="pollingBillingAddressFlow" processingStrategy="synchronous">
+        <poll doc:name="Poll">
+            <fixed-frequency-scheduler frequency="${poll.frequencyMillis}" startDelay="${poll.delayMillis}"/>
+              <watermark variable="sfdcPollAddress" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.LastModifiedDate]"/>	
+            <processor-chain doc:name="Processor Chain">
+                <logger message="Polling SFDC System API - #[flowVars.sfdcPollAddress]" level="INFO" category="com.merrillcorp.q2c" doc:name="INFO"/>
+                <sfdc:query config-ref="Salesforce__Basic_Authentication" query="SELECT Address_1__c,Address_2__c,Address_3__c,Billing_Address_ID__c,Billing_Company__c,City__c,Company_Name__c,Country__c,County__c,CreatedById,CreatedDate,Id,IsDeleted,LastModifiedById,LastModifiedDate,LastReferencedDate,LastViewedDate,Locality__c,Name,Operating_Unit_ID__c,Operating_Unit_Name__c,Oracle_ID__c,Physical_Address__c,Postal_Code__c,State_Province__c,SystemModstamp FROM Billing_Address__c WHERE LastModifiedDate &gt; #[flowVars.sfdcPollAddress]" doc:name="Salesforce"/>
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+                </dw:transform-message>
+                <logger message="Received SFDC System API Response" level="DEBUG" category="com.merrillcorp.q2c" doc:name="DEBUG"/>
+            </processor-chain>
+        </poll>
+        <flow-ref name="processBillingAddresses_Sub_Flow" doc:name="processBillingAddresses_Sub_Flow"/>
+        <logger message="Done Polling SFDC Billing Address" level="DEBUG" category="com.merrillcorp.q2c" doc:name="DEBUG"/>
+    </flow>
+    
+    <flow name="pollingBillingCompanyFlow" processingStrategy="synchronous">
+        <poll doc:name="Poll">
+            <fixed-frequency-scheduler frequency="${poll.frequencyMillis}" startDelay="${poll.delayMillis}"/>
+            <watermark variable="sfdcPollCompany" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.LastModifiedDate]"/>
+            <processor-chain doc:name="Processor Chain">
+                <logger message="Polling SFDC System API - #[flowVars.sfdcPollCompany]" level="INFO" category="com.merrillcorp.q2c" doc:name="INFO"/>
+                <sfdc:query config-ref="Salesforce__Basic_Authentication" query="SELECT Account__c,Billing_Company_ID__c,Billing_Company_Name__c,CreatedById,CreatedDate,Id,IsDeleted,LastModifiedById,LastModifiedDate,LastReferencedDate,LastViewedDate,Name,Oracle_Account_Number__c,Oracle_ID__c,OwnerId,SystemModstamp,VAT__c FROM Billing_Company__c WHERE LastModifiedDate &gt; #[flowVars.sfdcPollCompany]" doc:name="Salesforce"/>
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+                </dw:transform-message>
+                <logger message="Received SFDC System API Response" level="DEBUG" category="com.merrillcorp.q2c" doc:name="DEBUG"/>
+            </processor-chain>
+        </poll>
+        <flow-ref name="processBillingCompanies_Sub_Flow" doc:name="processBillingCompanies_Sub_Flow"/>
+        <logger message="Done Polling SFDC Billing Address" level="DEBUG" category="com.merrillcorp.q2c" doc:name="DEBUG"/>
+    </flow>
+</mule>

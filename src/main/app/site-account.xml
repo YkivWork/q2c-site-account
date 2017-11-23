@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <sub-flow name="processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow">
+        <logger message="flow = start = processProjectsToUpdateAriaContact_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <foreach collection="#[flowVars.billingAddressBillingCompanyToProjects]" doc:name="For Each">
+            <logger message="The payload after Salesforce and beginning of for each:  #[payload]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <set-variable variableName="sfProjectNumber" value="#[payload.projectId]" doc:name="sfProjectNumber"/>
+            <set-variable variableName="BillingCompanyID" value="#[payload.billingCompanyId]" doc:name="BillingCompanyID"/>
+            <set-variable variableName="billingCompanyDataForeach" value="#[payload]" doc:name="billingCompanyDataForeach"/>
+            <scripting:component doc:name="getAddressAndCompany">
+                <scripting:script engine="Groovy" file="groovy/getAddressAndCompany.groovy"/>
+            </scripting:component>
+            <logger message="The variable theBillingAddress has :   #[flowVars.theBillingAddress]" level="INFO" category="com.merrillcorp.q2c" doc:name="theBillingAddress"/>
+            <logger message="The variable theBillingCompany has:  #[flowVars.theBillingCompany]" level="INFO" category="com.merrillcorp.q2c" doc:name="theBillingCompany"/>
+            <flow-ref name="MDR_getAriaAccountsFromBillingCompanyIdSub_Flow" doc:name="MDR_getAriaAccountsFromBillingCompanyIdSub_Flow"/>
+            <flow-ref name="MDR_getAriaAccountsFromOrg_AcctSub_Flow" doc:name="MDR_getAriaAccountsFromOrg_AcctSub_Flow"/>
+            <flow-ref name="ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow" doc:name="ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow"/>
+        </foreach>
+        <logger message="flow =  end = processProjectsToUpdateAriaContact_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    <sub-flow name="processProjectsBillingAddressToUpdateAriaContact_Sub_Flow">
+        <logger message="flow = start = processProjectsBillingAddressToUpdateAriaContact_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <foreach collection="#[flowVars.billingAddressBillingCompanyToProjects]" doc:name="For Each">
+            <logger message="The payload after Salesforce and beginning of for each:  #[payload]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <set-variable variableName="sfProjectNumber" value="#[payload.projectId]" doc:name="sfProjectNumber"/>
+            <set-variable variableName="billingCompanyDataForeach" value="#[payload]" doc:name="billingCompanyDataForeach"/>
+            <scripting:component doc:name="getAddressAndCompany">
+                <scripting:script engine="Groovy" file="groovy/getAddressAndCompany.groovy"/>
+            </scripting:component>
+            <logger message="The variable theBillingAddress has :   #[flowVars.theBillingAddress]" level="INFO" category="com.merrillcorp.q2c" doc:name="theBillingAddress"/>
+            <flow-ref name="MDR_getAriaAccountsForBillingAddressSub_Flow" doc:name="MDR_getAriaAccountsForBillingAddressSub_Flow"/>
+            <flow-ref name="ProcessAriaAccountsToUpdateContacts_Sub_Flow" doc:name="ProcessAriaAccountsToUpdateContacts_Sub_Flow"/>
+        </foreach>
+        <logger message="flow = end = processProjectsBillingAddressToUpdateAriaContact_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    <sub-flow name="ProcessAriaAccountsToUpdateContacts_Sub_Flow">
+        <logger message="flow = start = ProcessAriaAccountsToUpdateContacts_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <foreach  doc:name="For Each">
+            <logger message="#[payload]" level="DEBUG" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <logger message="Aria Acct ID: #[payload.ql_val], ---------------------------- Aria MPI ID: #[payload.id_val], ---------------------------- Entity Instance ID: #[payload.instance_id]" level="DEBUG" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <set-variable variableName="ariaAccount" value="#[payload.ql_val]" doc:name="ariaAccount"/>
+            <set-variable variableName="ariaMPI" value="#[payload.id_val]" doc:name="ariaMPI"/>
+            <set-variable variableName="instanceId" value="#[payload.instance_id]" doc:name="instanceId"/>
+            <logger message="The Variables: ariaAccount:  #[flowVars.ariaAccount] ------------------------------ariaMPI:  #[flowVars.ariaMPI] --------------------------------------InstanceID: #[flowVars.instanceId]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <flow-ref name="aria_getBillingGroup_Sub_Flow" doc:name="aria_getBillingGroup_Sub_Flow"/>
+            <flow-ref name="aria_updateContact_Sub_Flow" doc:name="aria_updateContact_Sub_Flow"/>
+        </foreach>
+        <logger level="INFO" doc:name="Logger" message="flow = end = ProcessAriaAccountsToUpdateContacts_Sub_Flow" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    <sub-flow name="ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow">
+        <logger level="INFO" doc:name="Logger" category="com.merrillcorp.q2c" message="flow = start = ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow"/>
+        <foreach  doc:name="For Each">
+            <logger message="#[payload]" level="DEBUG" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <logger message="Aria Acct ID: #[payload.ql_val], ---------------------------- Aria MPI ID: #[payload.id_val], ---------------------------- Entity Instance ID: #[payload.instance_id]" level="DEBUG" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <set-variable variableName="ariaAccount" value="#[payload.ql_val]" doc:name="ariaAccount"/>
+            <set-variable variableName="ariaMPI" value="#[payload.id_val]" doc:name="ariaMPI"/>
+            <set-variable variableName="instanceId" value="#[payload.instance_id]" doc:name="instanceId"/>
+            <logger message="The Variables: ariaAccount:  #[flowVars.ariaAccount] ------------------------------ariaMPI:  #[flowVars.ariaMPI] --------------------------------------InstanceID: #[flowVars.instanceId]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+            <flow-ref name="aria_getBillingGroup_Sub_Flow" doc:name="aria_getBillingGroup_Sub_Flow"/>
+            <flow-ref name="aria_companyName_updateContact_Sub_Flow" doc:name="aria_companyName_updateContact_Sub_Flow"/>
+        </foreach>
+        <logger level="INFO" doc:name="Logger" message="flow = end = ProcessAriaAccountsToUpdateContactsForBillingCompany_Sub_Flow" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    <sub-flow name="processBillingAddresses_Sub_Flow">
+        <logger message="flow = start = processBillingAddresses_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <choice doc:name="Choice">
+            <when expression="#[payload.size() &gt; 0]">
+                <flow-ref name="sf_getBillingAddressToProjects_Sub_Flow" doc:name="sf_getBillingAddressToProjects_Sub_Flow"/>
+                <flow-ref name="sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow" doc:name="sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow"/>
+                <flow-ref name="processProjectsBillingAddressToUpdateAriaContact_Sub_Flow" doc:name="processProjectsBillingAddressToUpdateAriaContact_Sub_Flow"/>
+            </when>
+            <otherwise>
+                <logger message="Poll returned no results - Run Complete" level="DEBUG" category="com.merrillcorp.q2c" doc:name="Logger"/>
+            </otherwise>
+        </choice>
+        <logger message="flow = end = processBillingAddresses_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    <sub-flow name="processBillingCompanies_Sub_Flow">
+        <logger message="flow = start = processBillingCompanies_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <choice doc:name="Choice">
+            <when expression="#[payload.size() &gt; 0]">
+                <flow-ref name="sf_getBillingCompanyToProjects_Sub_Flow" doc:name="sf_getBillingCompanyToProjects_Sub_Flow"/>
+                <flow-ref name="sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow" doc:name="sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow"/>
+                <flow-ref name="processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow" doc:name="processProjectsBillingCompanyToUpdateAriaContact_Sub_Flow"/>
+            </when>
+            <otherwise>
+                <logger message="Poll returned no results - Run Complete" level="DEBUG" category="com.merrillcorp.q2c" doc:name="Logger"/>
+            </otherwise>
+        </choice>
+        <logger message="flow = end = processBillingCompanies_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+
+    
+</mule>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
+    <munit:config  mock-connectors="false" mock-inbounds="false" name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+            <spring:import resource="classpath:globals.xml"/>
+        <spring:import resource="classpath:salesforce.xml"/>
+    </spring:beans>
+    <munit:test name="salesforce-test-suite-sf_getBillingAddressToProjects_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Salesforce Get DatasiteOne Project">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="Salesforce Get DatasiteOne Project"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#[getResource('example/datasiteone-project-example.json').asString()]" mimeType="application/json"/>
+
+        </mock:when>
+        <set-payload value="#[getResource('example/billingAddress-sample.json').asString()]" mimeType="application/json" doc:name="Set Payload"/>
+        <flow-ref name="sf_getBillingAddressToProjects_Sub_Flow" doc:name="sf_getBillingAddressToProjects_Sub_Flow"/>
+        <munit:assert-on-equals message="failed on billingAddressBillingCompanyToProjects" expectedValue="#[3]" actualValue="#[flowVars.billingAddressBillingCompanyToProjects.size()]" doc:name="Assert Equals on BilingAddressBillingCompanyToProjects"/>
+        <munit:assert-on-equals message="failed on billingAddresses size on sf_getBillingAddressToProjects" expectedValue="#[26]" actualValue="#[flowVars.billingAddresses.size()]" doc:name="Assert Equals on billingAddresses"/>
+        <munit:assert-on-equals message="failed on billingAddressIds" expectedValue="('a2YS0000002upz4MAA','a2YS0000002um6TMAQ','a2YS0000002upyfMAA','a2YS0000002upyuMAA','a2YS0000002upzOMAQ','a2YS0000002upzJMAQ','a2YS0000002upzEMAQ','a2YS0000002upzYMAQ','a2YS0000002upyzMAA','a2YS0000002upz9MAA','a2YS0000002unFJMAY','a2YS0000002um6uMAA','a2YS0000002upzTMAQ','a2YS0000002um77MAA','a2YS0000002umq5MAA','a2YS0000002Q8sWMAS','a2YS0000002Q8slMAC','a2YS0000002Q8sMMAS','a2YS0000002Q8sRMAS','a2YS0000002Q8sbMAC','a2YS0000002Q8sgMAC','a2YS0000002upyVMAQ','a2YS0000002upypMAA','a2YS0000002umurMAA','a2YS0000002upzdMAA','a2YS0000002uoP0MAI')" actualValue="#[flowVars.billingAddressIds]" doc:name="Assert Equals on billingAddressIds"/>
+    </munit:test>
+    <munit:test name="salesforce-test-suite-sf_getBillingCompanyToProjects_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Salesforce Get DatasiteOne Project">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="Salesforce Get DatasiteOne Project"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#[getResource('example/datasiteone-project-example.json').asString()]" mimeType="application/json"/>
+        </mock:when>
+        <set-payload value="#[getResource('example/billingCompany-sample.json').asString()]" mimeType="application/json" doc:name="Set Payload"/>
+        <flow-ref name="sf_getBillingCompanyToProjects_Sub_Flow" doc:name="sf_getBillingCompanyToProjects_Sub_Flow"/>
+        <munit:assert-on-equals message="failed on billingAddressBillingCompanyToProjects" expectedValue="#[3]" actualValue="#[flowVars.billingAddressBillingCompanyToProjects.size()]" doc:name="Assert Equals on BilingAddressBillingCompanyToProjects"/>
+        <munit:assert-on-equals message="failed on billingCompanies size on sf_getBillingCompaniesToProjects" expectedValue="#[20]" actualValue="#[flowVars.billingCompanies.size()]" doc:name="Assert Equals on billingCompanies"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+flowVars.billingCompanies]]></dw:set-payload>
+        </dw:transform-message>
+        <munit:assert-on-equals message="failed on billingAddressIds" expectedValue="('a2dS0000000UQbwIAG','a2dS0000000URE5IAO','a2dS0000000UQcBIAW','a2dS0000000URE0IAO','a2dS0000000QvtyIAC','a2dS0000000UQc1IAG','a2dS0000000UREAIA4','a2dS0000000QsSQIA0','a2dS0000000UREKIA4','a2dS0000000QsQ0IAK','a2dS0000000QvtoIAC','a2dS0000000UQbrIAG','a2dS0000000UQcLIAW','a2dS0000000QsPqIAK','a2dS0000000QvuDIAS','a2dS0000000QsPvIAK','a2dS0000000QvttIAC','a2dS0000000UQcGIAW','a2dS0000000UREFIA4','a2dS0000000Qvu8IAC')" actualValue="#[flowVars.billingCompanyIds]" doc:name="Assert Equals on billingCompanyIds"/>
+    </munit:test>
+    <munit:test name="salesforce-test-suite-sf_getBillingAddressFromBillingCompanyToProjects_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Salesforce Get BillingAddress">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="Salesforce Get BillingAddress"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#[getResource('example/billingAddress-sample.json').asString()]" mimeType="application/json"/>
+        </mock:when>
+        <dw:transform-message doc:name="Set billingAddresses">
+            <dw:set-variable variableName="billingAddressBillingCompanyToProjects"><![CDATA[%dw 1.0
+%output application/java
+---
+[
+	{
+
+		billingAddressId: "billingAddressId01"	
+
+},
+	{
+
+		billingAddressId: "billingAddressId02"
+}
+
+
+
+]]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow" doc:name="sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow"/>
+        <munit:assert-on-equals message="failed on billingAddresses size on sf_getBillingAddressToProjects" expectedValue="#[26]" actualValue="#[flowVars.billingAddresses.size()]" doc:name="Assert Equals on billingAddresses"/>
+        <munit:assert-on-equals message="failed on billingAddressIds" expectedValue="('billingAddressId01','billingAddressId02')" actualValue="#[flowVars.billingAddressIds]" doc:name="Assert Equals on billingAddressIds"/>
+    </munit:test>
+    <munit:test name="salesforce-test-suite-sf_getBillingCompanyFromBillingAddressToProjects_Sub_FlowTest" description="Test">
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Salesforce Get BillingCompany">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="Salesforce Get BillingCompany"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#[getResource('example/billingCompany-sample.json').asString()]" mimeType="application/json"/>
+        </mock:when>
+        <dw:transform-message doc:name="Set billingCompanies">
+            <dw:set-variable variableName="billingAddressBillingCompanyToProjects"><![CDATA[%dw 1.0
+%output application/java
+---
+[
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UQbwIAG",
+    "billingCompanyName": null,
+    "name": "Chase Corporation"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000URE5IAO",
+    "billingCompanyName": "teste - 22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222",
+    "name": "teste - 222222222222222222222222222222222222222222222222222222222222222222222222"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UQcBIAW",
+    "billingCompanyName": null,
+    "name": "Electrolux"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000URE0IAO",
+    "billingCompanyName": "testtesteassssssssssssssssssssssssssdasssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+    "name": "testtesteassssssssssssssssssssssssssdassssssssssssssssssssssssssssssssssssssssss"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000QvtyIAC",
+    "billingCompanyName": null,
+    "name": "Bird & Bird"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UQc1IAG",
+    "billingCompanyName": null,
+    "name": "Amazon EU S.a.r.l"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UREAIA4",
+    "billingCompanyName": "wsfddf",
+    "name": "wsfddf"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000QsSQIA0",
+    "billingCompanyName": null,
+    "name": "MS Billing Co"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UREKIA4",
+    "billingCompanyName": "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "name": "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000QsQ0IAK",
+    "billingCompanyName": null,
+    "name": "BC-002"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000QvtoIAC",
+    "billingCompanyName": null,
+    "name": "3M Company"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UQbrIAG",
+    "billingCompanyName": null,
+    "name": "Activision Blizzard, Inc."
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UQcLIAW",
+    "billingCompanyName": null,
+    "name": "Pluto Inc."
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000QsPqIAK",
+    "billingCompanyName": null,
+    "name": "BC-000"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000QvuDIAS",
+    "billingCompanyName": null,
+    "name": "KPMG"
+  },
+  {
+    "account": "001S000000q5h8NIAQ",
+    "billingCompanyId": "a2dS0000000QsPvIAK",
+    "billingCompanyName": null,
+    "name": "Company 1"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000QvttIAC",
+    "billingCompanyName": null,
+    "name": "Air France"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UQcGIAW",
+    "billingCompanyName": null,
+    "name": "Petromedia Ltd"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000UREFIA4",
+    "billingCompanyName": "wsfddf",
+    "name": "wsfddf"
+  },
+  {
+    "account": null,
+    "billingCompanyId": "a2dS0000000Qvu8IAC",
+    "billingCompanyName": null,
+    "name": "Cargill Incorporated"
+  }
+]]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow" doc:name="sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow"/>
+        <munit:assert-on-equals message="failed on billingCompanies size on sf_getBillingCompaniesToProjects" expectedValue="#[20]" actualValue="#[flowVars.billingCompanies.size()]" doc:name="Assert Equals on billingCompanies"/>
+        <munit:assert-on-equals message="failed on billingCompanyIds" expectedValue="('a2dS0000000UQbwIAG','a2dS0000000URE5IAO','a2dS0000000UQcBIAW','a2dS0000000URE0IAO','a2dS0000000QvtyIAC','a2dS0000000UQc1IAG','a2dS0000000UREAIA4','a2dS0000000QsSQIA0','a2dS0000000UREKIA4','a2dS0000000QsQ0IAK','a2dS0000000QvtoIAC','a2dS0000000UQbrIAG','a2dS0000000UQcLIAW','a2dS0000000QsPqIAK','a2dS0000000QvuDIAS','a2dS0000000QsPvIAK','a2dS0000000QvttIAC','a2dS0000000UQcGIAW','a2dS0000000UREFIA4','a2dS0000000Qvu8IAC')" actualValue="#[flowVars.billingCompanyIds]" doc:name="Assert Equals on billingCompanyIds"/>
+    </munit:test>
+</mule>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+
+    <sub-flow name="sf_getBillingAddressToProjects_Sub_Flow">
+        <logger message="flow = start = sf_getBillingAddressToProjects_Sub_Flow" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <dw:transform-message doc:name="Parse BillingAddress">
+            <dw:set-variable resource="classpath:dataweave/sf_ParseBillingAddresses.dwl" variableName="billingAddresses"/>
+        </dw:transform-message>
+        <logger message="the variable billingAddresses has: #[flowVars.billingAddresses]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <scripting:component doc:name="getAllBillingAddressIds">
+            <scripting:script engine="Groovy" file="groovy/getAllBillingAddressIds.groovy"/>
+        </scripting:component>
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="SELECT Billing_Address__c,Email_Address__c,First_Name__c,Last_Name__c,Phone__c,Billing_Company__c,DatasiteOne_Project__c FROM DatasiteOne_Company__c WHERE Billing_Address__c in #[flowVars.billingAddressIds] AND DatasiteOne_Project__c in (SELECT Id FROM DatasiteOne_Project__c WHERE Project_Status__c in ('Active', 'Build Period', 'Hibernation', 'Suspended', 'Closure Request') )" doc:name="Salesforce Get DatasiteOne Project"/>
+        <dw:transform-message doc:name="Parse DatasiteOne Project">
+            <dw:set-variable resource="classpath:dataweave/sf_parseDatasiteOneProject.dwl" variableName="billingAddressBillingCompanyToProjects"/>
+        </dw:transform-message>
+        <logger message="The variable billingAddressBillingCompanyToProjects has: #[flowVars.billingAddressBillingCompanyToProjects]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+
+        <logger message="flow = end = sf_getBillingAddressToProjects_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+    
+    <sub-flow name="sf_getBillingCompanyToProjects_Sub_Flow">
+        <logger message="flow = start = sf_getBillingCompanyToProjects_Sub_Flow" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <dw:transform-message doc:name="Parse BillingCompany">
+            <dw:set-variable resource="classpath:dataweave/sf_ParseBillingCompanies.dwl" variableName="billingCompanies"/>
+        </dw:transform-message>
+        <logger message="the variable billingCompanies has: #[flowVars.billingCompanies]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <scripting:component doc:name="getAllBillingCompanyIds">
+            <scripting:script engine="Groovy" file="groovy/getAllBillingCompanyIds.groovy"/>
+        </scripting:component>
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="SELECT Billing_Address__c,Billing_Company__c,First_Name__c,Last_Name__c,Middle_Initial__c,Email_Address__c,Phone__c,DatasiteOne_Project__c FROM DatasiteOne_Company__c WHERE Billing_Company__c in #[flowVars.billingCompanyIds] AND DatasiteOne_Project__c in (SELECT Id FROM DatasiteOne_Project__c WHERE Project_Status__c in ('Active', 'Build Period', 'Hibernation', 'Suspended', 'Closure Request') )" doc:name="Salesforce Get DatasiteOne Project"/>
+        <dw:transform-message doc:name="Parse DatasiteOne Project">
+            <dw:set-variable resource="classpath:dataweave/sf_parseDatasiteOneProject.dwl" variableName="billingAddressBillingCompanyToProjects"/>
+        </dw:transform-message>
+        <logger message="The variable billingAddressBillingCompanyToProjects has: #[flowVars.billingAddressBillingCompanyToProjects]" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+
+        <logger message="flow = end = sf_getBillingCompanyToProjects_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+
+    <sub-flow name="sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow">
+        <logger message="flow = start = sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+        <scripting:component doc:name="getAllBillingAddressIds">
+            <scripting:script engine="Groovy" file="groovy/getAllBillingAddressIdsFromAddressCompanyProjects.groovy"/>
+        </scripting:component>
+
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="SELECT Address_1__c,Address_2__c,Address_3__c,Billing_Address_ID__c,Billing_Company__c,City__c,Company_Name__c,Country__c,County__c,CreatedById,CreatedDate,Id,IsDeleted,LastModifiedById,LastModifiedDate,LastReferencedDate,LastViewedDate,Locality__c,Name,Operating_Unit_ID__c,Operating_Unit_Name__c,Oracle_ID__c,Physical_Address__c,Postal_Code__c,State_Province__c,SystemModstamp FROM Billing_Address__c  WHERE Billing_Address_ID__c in #[flowVars.billingAddressIds]" doc:name="Salesforce Get BillingAddress"/>
+        <dw:transform-message doc:name="Parse BillingAddress">
+            <dw:set-variable resource="classpath:dataweave/sf_ParseBillingAddresses.dwl" variableName="billingAddresses"/>
+        </dw:transform-message>
+        <logger message="The variable billingAddresses has: #[flowVars.billingAddresses]" level="INFO" doc:name="Logger"/>
+        <logger message="flow = end = sf_getBillingAddressFromBillingCompanyToProjects_Sub_Flow" level="DEBUG" doc:name="Logger" category="com.merrillcorp.q2c"/>
+    </sub-flow>
+
+    <sub-flow name="sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow">
+        <logger message="flow = start = sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow" level="INFO" category="com.merrillcorp.q2c" doc:name="Logger"/>
+
+        <scripting:component doc:name="getAllBillingCompanyIds">
+            <scripting:script engine="Groovy" file="groovy/getAllBillingCompanyIdsFromAddressCompanyProjects.groovy"/>
+        </scripting:component>
+
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="SELECT Account__c,Billing_Company_ID__c,Billing_Company_Name__c,CreatedById,CreatedDate,Id,IsDeleted,LastModifiedById,LastModifiedDate,LastReferencedDate,LastViewedDate,Name,Oracle_Account_Number__c,Oracle_ID__c,OwnerId,SystemModstamp,VAT__c FROM Billing_Company__c WHERE Billing_Company_ID__c in #[flowVars.billingCompanyIds]" doc:name="Salesforce Get BillingCompany"/>
+        <dw:transform-message doc:name="Parse BillingCompany">
+            <dw:set-variable resource="classpath:dataweave/sf_ParseBillingCompanies.dwl" variableName="billingCompanies"/>
+        </dw:transform-message>
+        <logger message="The variable billingCompanies has: #[flowVars.billingCompanies]" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c"/>
+        <logger message="flow = end = sf_getBillingCompanyFromBillingAddressToProjects_Sub_Flow" level="INFO" doc:name="Logger" category="com.merrillcorp.q2c" />
+    </sub-flow>
+
+    
+        
+</mule>

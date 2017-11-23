@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <flow name="updateaddressFlow">
+        <logger message="Starting updateaddressFlow" level="DEBUG" doc:name="[DEBUG]Log Payload" category="com.merrillcorp.q2c"/>
+
+        <dw:transform-message doc:name="Send to Salesforce">
+            <dw:set-payload resource="classpath:dataweave/sf_SetAddressUpdate.dwl"/>
+        </dw:transform-message>
+
+        <sfdc:upsert config-ref="Salesforce__Basic_Authentication" externalIdFieldName="Oracle_ID__c" type="Billing_Address__c" doc:name="Salesforce">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:upsert>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <choice doc:name="Choice">
+            <when expression="payload[0].errors.length == 0 &amp;&amp; payload[0].success == true">
+                <logger message="Billing Address update Success" level="DEBUG" category="com.merrillcorp.q2c" doc:name="Success"/>
+            </when>
+            <otherwise>
+                <logger message="Error Updating Billing Address -----------&gt;  Error Payload: #[message.payloadAs(java.lang.String)]" level="ERROR" category="com.merrillcorp.q2c" doc:name="Error"/>
+                <scripting:component doc:name="Groovy">
+                    <scripting:script engine="Groovy"><![CDATA[if(((payload[0].errors.length) != 0) || ((payload[0].success) == false)){
+	throw new java.lang.Exception();
+
+}else{
+
+return payload
+}]]></scripting:script>
+                </scripting:component>
+            </otherwise>
+        </choice>
+
+        <logger message="End of updateaddressFlow" level="DEBUG" doc:name="[DEBUG]Log Payload" category="com.merrillcorp.com"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <logger message="#[exception.getSummarymessage()]" level="ERROR" category="updateaddress" doc:name="Log Exception Summary"/>
+        </catch-exception-strategy>
+    </flow>
+</mule>

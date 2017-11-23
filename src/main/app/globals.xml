@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:secure-property-placeholder="http://www.mulesoft.org/schema/mule/secure-property-placeholder"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mulesoft.org/schema/mule/secure-property-placeholder/current/mule-secure-property-placeholder.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<http:request-config name="HTTP_Aria_Sys_Request_Configuration" protocol="HTTPS" host="${aria.sys.host}" port="${aria.sys.port}" basePath="/" doc:name="HTTP Request Configuration"/>
+
+	<secure-property-placeholder:config name="Secure_Property_Placeholder" key="${runtime.key}" location="common.properties,hc-${mule.env}.properties,${mule.env}.properties" doc:name="Secure Property Placeholder"/>
+
+	<sfdc:config name="Salesforce__Basic_Authentication" username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" doc:name="Salesforce" doc:description="SFDC Instance">
+		<reconnect-forever frequency="5000" blocking="false"/>
+	</sfdc:config>
+
+	<http:request-config name="HTTP_MDR_Configuration" host="${mdr.system.host}" port="${mdr.system.port}" basePath="/" doc:name="HTTP Request Configuration"/>
+
+	<http:request-config name="oracleRequestConfiguration" host="${oracle.host}" port="${oracle.port}" protocol="HTTPS" basePath="/" doc:name="oracleSystemRequestConfiguration" responseTimeout="${response.timeout}"/>
+
+	<ee:object-store-caching-strategy entryTTL="600000" name="ExpirableCachingStrategy" doc:name="Caching Strategy" />
+</mule>
